@@ -3,6 +3,7 @@
 import argparse
 import sys
 import os
+import warnings
 import subprocess
 import asyncio
 import tempfile
@@ -27,27 +28,32 @@ def read_pairs(filename):
     return ortho_pairs
 
 def calculate_ds(pairs, pep_seqdb, cds_seqdb):
-    ds_func = partial(get_ds, pep_seqdb, cds_seqdb)
+    tmp_output_folder = tempfile.mkdtemp(prefix="dated_",dir="./")
+    ds_func = partial(get_ds, pep_seqdb, cds_seqdb, tmp_output_folder)
     with Pool(processes=8) as pool:
         pool.map(ds_func, pairs)
+    shutil.rmtree(tmp_output_folder)  # delete tmp output folder
 
 
-def get_ds(pep_seqdb, cds_seqdb, pairs):
-#    for [seqA, seqB] in pairs:
+def get_ds(pep_seqdb, cds_seqdb, tmp_output_folder, pairs):
         [seqA, seqB] = pairs
         try:
-            tmp_folder = tempfile.mkdtemp(dir="./tmp")
             cwd = os.getcwd()
+            tmp_folder = tempfile.mkdtemp(dir=tmp_output_folder)
             os.chdir(tmp_folder)
             pep_seq_path = "pep_pair.fasta"
             cds_seq_path = "cds_pair.fasta"
             aln_path = "pep_pair.aln"
             pal_path = "pep_pair.pal2nal"
-            run_clustalw(seqA, seqB, pep_seqdb, pep_seq_path)
-            run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
+
+            if(check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb)):
+                run_clustalw(seqA, seqB, pep_seqdb, pep_seq_path)
+                run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
                         aln_path, pal_path)
-            ds = run_codeml(tmp_folder, pal_path)
-            print(",".join(map(str,(seqA, seqB, ds))))
+                ds = run_codeml(tmp_folder, pal_path)
+                print(",".join(map(str,(seqA, seqB, ds))))
+            else:
+                print("WARNING: missing sequence in FASTA ", pairs)
         finally:
             try:
                 os.chdir(cwd)
@@ -55,6 +61,13 @@ def get_ds(pep_seqdb, cds_seqdb, pairs):
             except OSError as exc:
                 raise exc
 
+def check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb):
+    return seq_exists(seqA, pep_seqdb) and seq_exists(seqB, pep_seqdb) and \
+           seq_exists(seqA, cds_seqdb) and seq_exists(seqB, cds_seqdb)
+
+
+def seq_exists(seqA, seqdb):
+    return seqA in seqdb
 
 
 def run_clustalw(seqA, seqB, seqdb, seq_path):

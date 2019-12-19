@@ -66,7 +66,12 @@ def check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb):
            seq_exists(seqA, cds_seqdb) and seq_exists(seqB, cds_seqdb)
 
 
+def get_exec_dir():
+    # get the executable directory
+    return os.path.dirname(os.path.abspath(__file__))
+
 def seq_exists(seqA, seqdb):
+    # check if a sequence exists in database
     return seqA in seqdb
 
 
@@ -89,7 +94,8 @@ def run_codeml(tmp_folder, pal_path):
     cml = codeml.Codeml(alignment=pal_path,
                         out_file="pair.ks",
                         tree="pep_pair.dnd")
-    cml.read_ctl_file("../../config/codeml.ctl")
+    exec_dir = get_exec_dir()
+    cml.read_ctl_file(exec_dir+"/config/codeml.ctl")
     results = cml.run().get("pairwise")
     prot1 = next(iter(results.values()))
     for prot2, attributes in prot1.items():

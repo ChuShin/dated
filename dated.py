@@ -34,32 +34,37 @@ def calculate_ds(pairs, pep_seqdb, cds_seqdb):
         pool.map(ds_func, pairs)
     shutil.rmtree(tmp_output_folder)  # delete tmp output folder
 
+def is_list(pairs):
+    return isinstance(pairs,list) and len(pairs) == 2
 
 def get_ds(pep_seqdb, cds_seqdb, tmp_output_folder, pairs):
-        [seqA, seqB] = pairs
-        try:
-            cwd = os.getcwd()
-            tmp_folder = tempfile.mkdtemp(dir=tmp_output_folder)
-            os.chdir(tmp_folder)
-            pep_seq_path = "pep_pair.fasta"
-            cds_seq_path = "cds_pair.fasta"
-            aln_path = "pep_pair.aln"
-            pal_path = "pep_pair.pal2nal"
+    if(not is_list(pairs)):
+        raise ValueError(f"Error: {pairs} is not a proper pair")
+    [seqA, seqB] = pairs
 
-            if(check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb)):
-                run_clustalw(seqA, seqB, pep_seqdb, pep_seq_path)
-                run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
-                        aln_path, pal_path)
-                ds = run_codeml(tmp_folder, pal_path)
-                print(",".join(map(str,(seqA, seqB, ds))))
-            else:
-                print("WARNING: missing sequence in FASTA ", pairs)
-        finally:
-            try:
-                os.chdir(cwd)
-                shutil.rmtree(tmp_folder)  # delete directory
-            except OSError as exc:
-                raise exc
+    try:
+        cwd = os.getcwd()
+        tmp_folder = tempfile.mkdtemp(dir=tmp_output_folder)
+        os.chdir(tmp_folder)
+        pep_seq_path = "pep_pair.fasta"
+        cds_seq_path = "cds_pair.fasta"
+        aln_path = "pep_pair.aln"
+        pal_path = "pep_pair.pal2nal"
+
+        if(check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb)):
+            run_clustalw(seqA, seqB, pep_seqdb, pep_seq_path)
+            run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
+                    aln_path, pal_path)
+            ds = run_codeml(tmp_folder, pal_path)
+            print(",".join(map(str,(seqA, seqB, ds))))
+        else:
+            print("WARNING: missing sequence in FASTA ", pairs)
+    finally:
+        try:
+            os.chdir(cwd)
+            shutil.rmtree(tmp_folder)  # delete directory
+        except OSError as exc:
+            raise exc
 
 def check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb):
     return seq_exists(seqA, pep_seqdb) and seq_exists(seqB, pep_seqdb) and \

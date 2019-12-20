@@ -59,6 +59,8 @@ def get_ds(pep_seqdb, cds_seqdb, tmp_output_folder, pairs):
             print(",".join(map(str,(seqA, seqB, ds))))
         else:
             print("WARNING: missing sequence in FASTA ", pairs)
+    except Exception as e:
+        print(e)
     finally:
         try:
             os.chdir(cwd)

@@ -55,18 +55,20 @@ def get_ds(pep_seqdb, cds_seqdb, tmp_output_folder, pairs):
             run_clustalw(seqA, seqB, pep_seqdb, pep_seq_path)
             run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
                     aln_path, pal_path)
-            ds = run_codeml(tmp_folder, pal_path)
+            ds = run_codeml(cwd, tmp_folder, pal_path)
             print(",".join(map(str,(seqA, seqB, ds))))
         else:
             print("WARNING: missing sequence in FASTA ", pairs)
     except Exception as e:
         print(e)
+        #pass
     finally:
         try:
             os.chdir(cwd)
             shutil.rmtree(tmp_folder)  # delete directory
         except OSError as exc:
             raise exc
+
 
 def check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb):
     return seq_exists(seqA, pep_seqdb) and seq_exists(seqB, pep_seqdb) and \
@@ -77,9 +79,13 @@ def get_exec_dir():
     # get the executable directory
     return os.path.dirname(os.path.abspath(__file__))
 
+
 def seq_exists(seqA, seqdb):
     # check if a sequence exists in database
     return seqA in seqdb
+
+
+def nuc_aa_
 
 
 def run_clustalw(seqA, seqB, seqdb, seq_path):
@@ -89,20 +95,24 @@ def run_clustalw(seqA, seqB, seqdb, seq_path):
     clustalw = ClustalwCommandline('clustalw', infile=seq_path)
     stdout, stderr = clustalw()
 
-def run_pal2nal(seqA, seqB, seqdb, cds_seq_path, aln_path, pal_path):
-    with open(cds_seq_path, "w") as seqfile:
-        SeqIO.write(seqdb[seqA], seqfile, "fasta")
-        SeqIO.write(seqdb[seqB], seqfile, "fasta")
-    f = open(pal_path, "w")
-    subprocess.run(["pal2nal.pl",aln_path, cds_seq_path,
-                    "-nogap", "-output", "paml"], stdout=f)
 
-def run_codeml(tmp_folder, pal_path):
+def run_pal2nal(seqA, seqB, seqdb, cds_seq_path, aln_path, pal_path):
+    try:
+        with open(cds_seq_path, "w") as seqfile:
+            SeqIO.write(seqdb[seqA], seqfile, "fasta")
+            SeqIO.write(seqdb[seqB], seqfile, "fasta")
+        f = open(pal_path, "w")
+        subprocess.run(["pal2nal.pl",aln_path, cds_seq_path,
+                        "-nogap", "-output", "paml"], stdout=f)
+    except Exception as e:
+        print(e)
+
+
+def run_codeml(cwd, tmp_folder, pal_path):
     cml = codeml.Codeml(alignment=pal_path,
                         out_file="pair.ks",
                         tree="pep_pair.dnd")
-    exec_dir = get_exec_dir()
-    cml.read_ctl_file(exec_dir+"/config/codeml.ctl")
+    cml.read_ctl_file(cwd+"/config/codeml.ctl")
     results = cml.run().get("pairwise")
     prot1 = next(iter(results.values()))
     for prot2, attributes in prot1.items():

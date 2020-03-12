@@ -53,9 +53,12 @@ def get_ds(pep_seqdb, cds_seqdb, tmp_output_folder, pairs):
 
         if(check_input_sequences(seqA, seqB, pep_seqdb, cds_seqdb)):
             run_clustalw(seqA, seqB, pep_seqdb, pep_seq_path)
-            run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
+            p2n_status = run_pal2nal(seqA, seqB, cds_seqdb, cds_seq_path,
                     aln_path, pal_path)
-            ds = run_codeml(cwd, tmp_folder, pal_path)
+            if p2n_status == 0:
+                ds = run_codeml(cwd, tmp_folder, pal_path)
+            else:
+                ds = "PAL2NAL_ERR"
             print(",".join(map(str,(seqA, seqB, ds))))
         else:
             print("WARNING: missing sequence in FASTA ", pairs)
@@ -85,9 +88,6 @@ def seq_exists(seqA, seqdb):
     return seqA in seqdb
 
 
-def nuc_aa_
-
-
 def run_clustalw(seqA, seqB, seqdb, seq_path):
     with open(seq_path, "w") as seqfile:
         SeqIO.write(seqdb[seqA], seqfile, "fasta")
@@ -104,6 +104,9 @@ def run_pal2nal(seqA, seqB, seqdb, cds_seq_path, aln_path, pal_path):
         f = open(pal_path, "w")
         subprocess.run(["pal2nal.pl",aln_path, cds_seq_path,
                         "-nogap", "-output", "paml"], stdout=f)
+        if os.stat(pal_path).st_size == 0:
+            return -1
+        return 0
     except Exception as e:
         print(e)
 

@@ -31,7 +31,9 @@ def calculate_ds(pairs, pep_seqdb, cds_seqdb):
     tmp_output_folder = tempfile.mkdtemp(prefix="dated_",dir="./")
     ds_func = partial(get_ds, pep_seqdb, cds_seqdb, tmp_output_folder)
     with Pool(processes=8) as pool:
-        pool.map(ds_func, pairs)
+        results = pool.map(ds_func, pairs)
+    for result in results:
+        print(result)
     shutil.rmtree(tmp_output_folder)  # delete tmp output folder
 
 def is_list(pairs):
@@ -59,7 +61,7 @@ def get_ds(pep_seqdb, cds_seqdb, tmp_output_folder, pairs):
                 ds = run_codeml(cwd, tmp_folder, pal_path)
             else:
                 ds = "PAL2NAL_ERR"
-            print(",".join(map(str,(seqA, seqB, ds))))
+            return (",".join(map(str,(seqA, seqB, ds))))
         else:
             print("WARNING: missing sequence in FASTA ", pairs)
     except Exception as e:
@@ -116,8 +118,8 @@ def run_codeml(cwd, tmp_folder, pal_path):
                         out_file="pair.ks",
                         tree="pep_pair.dnd")
     exec_dir = get_exec_dir()
-    cml.read_ctl_file(exec_dir+"/config/codeml.ctl")
-#    cml.read_ctl_file(cwd+"/config/codeml.ctl")
+#    cml.read_ctl_file(exec_dir+"/config/codeml.ctl")
+    cml.read_ctl_file(cwd+"/config/codeml.ctl")
     results = cml.run().get("pairwise")
     prot1 = next(iter(results.values()))
     for prot2, attributes in prot1.items():

@@ -118,8 +118,8 @@ def run_codeml(cwd, tmp_folder, pal_path):
                         out_file="pair.ks",
                         tree="pep_pair.dnd")
     exec_dir = get_exec_dir()
-#    cml.read_ctl_file(exec_dir+"/config/codeml.ctl")
-    cml.read_ctl_file(cwd+"/config/codeml.ctl")
+    cml.read_ctl_file(exec_dir+"/config/codeml.ctl")
+#    cml.read_ctl_file(cwd+"/config/codeml.ctl")
     results = cml.run().get("pairwise")
     prot1 = next(iter(results.values()))
     for prot2, attributes in prot1.items():

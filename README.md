@@ -1,6 +1,6 @@
 # DATing Evolutionary Events and Divergence times (DATED)
 
-DATED is a pipeline that provides an efficient single step solution to estimate the level of synonymous substitution (Ks) between paralogous and orthologous sequence pairs. The software utilizes multiprocessing library to speedup Ks calculation for input sequence pairs. The output from the pipeline can be used in the `divergence.R` script to perform mixture model analysis of Ks distribution.
+DATED provides an efficient single step solution to estimate the level of synonymous substitution (Ks) between paralogous and orthologous sequence pairs. The software utilizes multiprocessing library to speedup Ks calculation for input sequence pairs. The output from the pipeline can be used in the `divergence.R` script to perform mixture model analysis of Ks distribution.
 
 
 
@@ -12,7 +12,14 @@ DATED is a pipeline that provides an efficient single step solution to estimate 
   `conda install clustalw` <br>
   `conda install pal2nal` <br>
   `conda install codeml` <br>
-  
+
+### Identification of Paralogs:
+An all-against-all protein sequence similarity (BLASTP with E-value, high-scoring segment pair (HSP) length and sequence identify cut-offs) search can be used to identify paralogous genes within a plant species for which completely annotated genome sequence is available. In the absence of a completely annotated genome sequence, transcript sequences assembled from RNA-Seq data can be used to identify homologs. In such case, the open reading frame for each transcript has to be predicted and corresponding translated amino acid sequence should be deduced.
+
+### Identification of Orthologs:
+Reciprocal best blast hit method can be used to detect orthologous genes between two related species. 
+
+
 ### Usage
 
 

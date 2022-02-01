@@ -33,7 +33,22 @@ Reciprocal best blast hit method can be used to detect orthologous genes between
 `dated.py pep.fa cds.fa blast_pairlist > blast_pairlist.ks`
 
 
-### Interpreting the results
+### Example
+
+**Identification of paralogs in soybean:**<br>
+
+1. Create a custom blast database:<br>
+`makeblastdb -in Glycine_max.Glycine_max_v2.1.pep.all.fa -parse_seqids -dbtype prot`
+
+2. Perform an all-against-all blastp search:<br>
+`blastp –query Glycine_max.Glycine_max_v2.1.pep.all.fa –out Gm_Gm_paralogs.out –db Glycine_max.Glycine_max_v2.1.pep.all.fa –outfmt6`
+
+3. Identify paralogs (Sequences aligned over >150 aa and showing at least 60% identity are defined as paralogs):<br>
+`bp_parse_blastp.pl Gm_Gm_paralogs.out > Gm_Gm_paralogs.parsed`
+
+4.	Ks estimation of paralogs:<br>
+`dated.py Glycine_max.Glycine_max_v2.1.pep.all.fa Glycine_max.Glycine_max_v2.1.cds.all.fa Gm_Gm_paralogs.parsed > Gm_Gm_paralogs.parsed.ks`
+
 
 
 ### Citation
